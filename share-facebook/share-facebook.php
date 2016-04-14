@@ -10,13 +10,13 @@
   Author URI: http://google.com/
  */
 
-function share_fb_script() {
+function ta_share_fb_script() {
     wp_enqueue_script( 'social-share-fb', plugins_url('js/share-fb.js', __FILE__), array( 'jquery' ), '1.0.0', true );
 }
 
-add_action( 'wp_enqueue_scripts', 'share_fb_script' );
+add_action( 'wp_enqueue_scripts', 'ta_share_fb_script' );
 
-function print_fb_sdk_script() {
+function ta_print_fb_sdk_script() {
   $options = get_option('share_fb_plugin_main_settings');
 ?>
     <script>
@@ -40,7 +40,7 @@ function print_fb_sdk_script() {
 
 <?php
 }  
-add_action( 'wp_footer', 'print_fb_sdk_script' );
+add_action( 'wp_footer', 'ta_print_fb_sdk_script' );
 
 add_action('wp_head', 'ta_add_fb_open_graph_tags');
 function ta_add_fb_open_graph_tags() {
@@ -53,7 +53,7 @@ function ta_add_fb_open_graph_tags() {
       $title = get_the_title();
       $url = get_the_permalink();
       //$description = get_bloginfo('description');
-      $description = shar_fb_excerpt( $post->post_content, $post->post_excerpt );
+      $description = ta_share_fb_excerpt( $post->post_content, $post->post_excerpt );
       $description = strip_tags($description);
       $description = str_replace("\"", "'", $description);
       if(get_the_post_thumbnail($post->ID, 'thumbnail')) {
@@ -61,7 +61,7 @@ function ta_add_fb_open_graph_tags() {
           $thumbnail_object = get_post($thumbnail_id);
           $image = $thumbnail_object->guid;
       } else {    
-          $image = catch_first_image_in_content($post->post_content, 200, 200);
+          $image = ta_catch_first_image_in_content($post->post_content, 200, 200);
       }
     }
     else//default
@@ -71,17 +71,18 @@ function ta_add_fb_open_graph_tags() {
       $image = $options['image_url'];
     }
 ?>
-<meta property="og:title" content="<?php echo $title; ?>" />
-<meta property="og:type" content="article" />
-<meta property="og:image" content="<?php echo $image; ?>" />
-<meta property="og:url" content="<?php echo $url ?>" />
-<meta property="og:description" content="<?php echo $description ?>" />
-<meta property="og:site_name" content="<?php echo get_bloginfo('name'); ?>" />
+  <meta property="og:title" content="<?php echo $title; ?>" />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="<?php echo $image; ?>" />
+  <meta property="og:url" content="<?php echo $url ?>" />
+  <meta property="og:description" content="<?php echo $description ?>" />
+  <meta property="og:site_name" content="<?php echo get_bloginfo('name'); ?>" />
+  
 <?php
   } //if render_meta_tag
 }//function
 
-function shar_fb_excerpt($text, $excerpt){
+function ta_share_fb_excerpt($text, $excerpt){
     
     if ($excerpt) return $excerpt;
 
@@ -105,7 +106,7 @@ function shar_fb_excerpt($text, $excerpt){
     return apply_filters('wp_trim_excerpt', $text, $excerpt);
 }
 
-function catch_first_image_in_content($post_content, $w = 150, $h = 150, $zc = 1) {       
+function ta_catch_first_image_in_content($post_content, $w = 150, $h = 150, $zc = 1) {       
   $output = preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $post_content, $matches);
   $first_img = $matches[1][0];
   if(empty($first_img)) {
@@ -119,9 +120,9 @@ function catch_first_image_in_content($post_content, $w = 150, $h = 150, $zc = 1
 }
 
 //Add Setting link below plugin name
-add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'share_fb_action_links' );
+add_filter( 'plugin_action_links_' . plugin_basename(__FILE__), 'ta_share_fb_action_links' );
 
-function share_fb_action_links( $links ) {
+function ta_share_fb_action_links( $links ) {
   $mylinks = array( '<a href="' . admin_url( 'options-general.php?page=facebook-share' ) . '">Settings</a>', );
   return array_merge( $mylinks, $links );
 }
