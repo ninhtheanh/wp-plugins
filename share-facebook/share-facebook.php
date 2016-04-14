@@ -78,6 +78,8 @@ function ta_add_fb_open_graph_tags() {
   <meta property="og:description" content="<?php echo $description ?>" />
   <meta property="og:site_name" content="<?php echo get_bloginfo('name'); ?>" />
   
+  <!-- <meta property="article:author" content="https://www.facebook.com/dongydinhtuan" />
+  <meta property="article:publisher" content="https://www.facebook.com/dongydinhtuan" /> -->
 <?php
   } //if render_meta_tag
 }//function
