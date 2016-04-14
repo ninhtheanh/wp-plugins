@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset=utf-8 />
+      <title>Share facebook </title>
+      <meta property="og:locale" content="vi_VN" />
+      <meta property="og:type" content="website" />
+      <meta property="og:title" content="Đông Y Gia Truyền Đình Tuân" />
+      <meta property="og:description" content="Phương thuốc đông y gia truyền Đình Tuân của chúng tôi là thương hiệu y học cổ truyền có từ lâu đời, lưu truyền từ nhiều đời. Nhiều căn bệnh mãn tính đã được chữa khỏi: bệnh trĩ, bệnh sản hậu ở phụ nữ, bệnh suy nhược cơ thể, bệnh suy nhược thần kinh, bệnh yếu sinh lý… Bài thuốc là sự tổng hợp nhiều loại thảo dược quý trong tự nhiên." />
+      <meta property="og:url" content="http://dongydinhtuan.com" />
+      <meta property="og:site_name" content="Đông Y Gia Truyền Đình Tuân" />
+      <meta property="fb:app_id" content="1619383618315607" />
+      <meta property="og:image" content="http://dongydinhtuan.com/wp-content/uploads/2015/09/mot-so-vi-thuoc.jpg" />
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  </head>
+<body>
+       
+
+    <button onclick="share_feed()">Share me, please</button>
+    <script>
+      function share_feed()
+      {
+        var share_link = $("meta[property='og:url']").attr("content");
+        var picture = $("meta[property='og:image']").attr("content");
+        var name = $("meta[property='og:title']").attr("content");
+        var caption = '';
+        var description = $("meta[property='og:description']").attr("content");
+
+        var obj = {
+            method: 'feed',
+            link: share_link,
+            picture: picture,
+            name: name,
+            caption: caption,
+            description: description,
+            actions: [{ name: name, link: share_link }]
+        };
+        FB.ui(obj);
+      }
+    </script>
+
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '1619383618315607',
+          xfbml      : true,
+          version    : 'v2.5'
+        });
+      };
+
+      (function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         //js.src = "//connect.facebook.net/en_US/sdk.js";
+         js.src = "https://connect.facebook.net/en_US/sdk.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));
+    </script>
+
+</body>
+</html>
