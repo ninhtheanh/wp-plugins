@@ -15,6 +15,8 @@ Replace:
     4. ta_cls_install => ta_cls_install_[name]
     5. ta_cls_admin => ta_cls_admin_[name]
     6. Change table information and schema in $arr_table
+Frontend: Ajax calls to save in class cls_frontend
+    1. Change ajax function name 'save_custom_table' in class cls_frontend and ajax function is in custom-table.js
 */
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 global $arr_table;
@@ -151,7 +153,7 @@ class ta_cls_install{
      */
     function custom_table_example_install_data()
     {
-        global $wpdb, $arr_table;;
+        global $wpdb, $arr_table;
 
         $table_name = $wpdb->prefix . $arr_table['tbl_name']; // do not forget about tables prefix
 
@@ -778,5 +780,57 @@ class ta_cls_admin{
     }    
 }//end class ta_cls_admin
 
+$cls_frontend = new cls_frontend();
+class cls_frontend
+{
+    function __construct()
+    {
+        //Add script and defind ajax url
+        add_action('wp_enqueue_scripts', array($this, 'add_script'));
+        $ajax_function = 'save_custom_table';
+        add_action( 'wp_ajax_nopriv_'.$ajax_function, array($this, $ajax_function) );
+        add_action( 'wp_ajax_'.$ajax_function, array($this, $ajax_function) );
+    }
 
-?>
+    function add_script()
+    {   
+        // wp_enqueue_script( 'jquery', plugins_url('js/jquery-2.1.1', __FILE__) );     
+        wp_enqueue_script( 'jquery-validate', plugins_url('js/jquery.validate.min.js', __FILE__), array( 'jquery' ), '1.0.3' );
+
+        wp_register_script( "custom-table", plugins_url('js/custom-table.js', __FILE__), array('jquery') );
+        wp_localize_script( 'custom-table', 'custom_table_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ))); 
+        wp_enqueue_script( 'custom-table' );
+    }
+    
+    function save_custom_table(){
+        global $wpdb, $arr_table;
+        $table_name = $wpdb->prefix . $arr_table['tbl_name'];
+        $arr_columns = $arr_table['tbl_columns'];
+        $id = (isset($_POST['id']) && $_POST['id'] > 0) ? $_POST['id'] : 0;
+        $arr_data = array();
+        foreach ($arr_columns as $key => $value) {
+            $field_value = isset($_POST[$key]) ? $_POST[$key] : "";
+            if(in_array(strtolower($key), array("date_created", "date_modified")))
+                $field_value = date("Y-m-d H:i:s");
+            else
+                $arr_data[$key] = $field_value;
+
+            $arr_data[$key] = $field_value;       
+        }
+        if($id > 0)
+            unset($arr_data['date_created']);
+        //print_r($arr_data);
+        if($id == 0)
+            $result = $wpdb->insert($table_name, $arr_data);
+        else
+            $result = $wpdb->update($table_name, $arr_data, array('id' => $id));
+        
+        if ($result !== FALSE)
+            $result = array("status"=>1, 'message'=>'ok' );
+        else
+            $result = array("status"=>0, 'message'=>'Fail' );
+
+        echo json_encode($result);
+        die();
+    }
+}
