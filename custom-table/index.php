@@ -2,11 +2,11 @@
 /*
 Plugin Name: Custom table example
 Description: example plugin to demonstrate wordpress capatabilities
-Plugin URI: http://mac-blog.org.ua/
-Author URI: http://mac-blog.org.ua/
-Author: Marchenko Alexandr
+Plugin URI: https://www.google.com
+Author URI: https://www.google.com
+Author: The Anh
 License: Public Domain
-Version: 1.1
+Version: 1.0
 How to use it:
     1. Change plugin folder and name
 Replace:
