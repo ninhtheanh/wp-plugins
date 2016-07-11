@@ -88,6 +88,7 @@ class ta_cls_install{
     function my_save_error()
     {
         file_put_contents(dirname(__file__).'/error_activation.txt', ob_get_contents());
+        //file_put_contents(dirname(__file__).'/error_activation.txt', print_r('error msg', true) . "\n", FILE_APPEND);
     }
 
     function custom_table_example_install()
