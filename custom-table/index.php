@@ -46,6 +46,7 @@ $arr_table = array(
                                 'sort'=>0,
                                 'required'=>0
                                 ),
+                            //for tracking
                             'date_created'=>array(
                                 'name'=>'Date created', 
                                 'type'=>"datetime NULL DEFAULT '0000-00-00 00:00:00'", 
@@ -59,6 +60,20 @@ $arr_table = array(
                                 'display_in_table'=>0, 
                                 'sort'=>0,
                                 'required'=>0,
+                                ),
+                            'created_by'=>array(
+                                'name'=>'Created by', 
+                                'type'=>'int(11) NULL', 
+                                'display_in_table'=>0, 
+                                'sort'=>0,
+                                'required'=>0
+                                ),
+                            'modified_by'=>array(
+                                'name'=>'Modified by', 
+                                'type'=>'int(11) NULL', 
+                                'display_in_table'=>0, 
+                                'sort'=>0,
+                                'required'=>0
                                 ),
         )
 );
@@ -87,8 +102,8 @@ class ta_cls_install{
 
     function my_save_error()
     {
-        file_put_contents(dirname(__file__).'/error_activation.txt', ob_get_contents());
         //file_put_contents(dirname(__file__).'/error_activation.txt', print_r('error msg', true) . "\n", FILE_APPEND);
+        //file_put_contents(dirname(__file__).'/error_activation.txt', ob_get_contents());        
     }
 
     function custom_table_example_install()
@@ -171,6 +186,8 @@ class ta_cls_install{
                 $arr_data[$key] = 1;
             elseif(in_array(strtolower($key), array("date_created", "date_modified")))
                 $arr_data[$key] = date("Y-m-d H:i:s");
+            elseif(in_array(strtolower($key), array("created_by", "modified_by")))
+                $arr_data[$key] = get_current_user_id();
             elseif(strpos(strtolower($value['type']), "datetime") !== FALSE)
                 $arr_data[$key] = date("Y-m-d H:i:s");
             elseif(strpos(strtolower($value['type']), "date") !== FALSE)
@@ -561,11 +578,18 @@ class ta_cls_admin{
             $wpdb->show_errors();
             $item_valid = $this->custom_table_example_validate($item);
             if ($item_valid === true) {
-                if ($item['id'] == 0) {
+                if ($item['id'] == 0) { //add new
+                    //if date_created, date_created were define
                     if($this->fieldExistInArrayColumns("date_created"))
                         $item['date_created'] = date("Y-m-d H:i:s");
                     if($this->fieldExistInArrayColumns("date_modified"))
                         $item['date_modified'] = date("Y-m-d H:i:s");
+                    //if created_by, modified_by were define
+                    if($this->fieldExistInArrayColumns("created_by"))
+                        $item['created_by'] = get_current_user_id();
+                    if($this->fieldExistInArrayColumns("modified_by"))
+                        $item['modified_by'] = get_current_user_id();
+
                     $result = $wpdb->insert($table_name, $item);
                     $item['id'] = $wpdb->insert_id;
                     if ($result) {
@@ -573,13 +597,17 @@ class ta_cls_admin{
                     } else {
                         $notice = __('There was an error while saving item', 'custom_table_example');
                     }
-                } else {                    
+                } else { //Update                 
                     if($this->fieldExistInArrayColumns("date_modified"))
                         $item['date_modified'] = date("Y-m-d H:i:s");
-
+                    if($this->fieldExistInArrayColumns("modified_by"))
+                        $item['modified_by'] = get_current_user_id();
+                    //remove when updating
                     $arr_upd_item = $item;
-                    if($this->fieldExistInArrayColumns("date_created"))
+                    if( isset($arr_upd_item['date_created']) )
                         unset($arr_upd_item['date_created']);
+                    if( isset($arr_upd_item['created_by']) )
+                        unset($arr_upd_item['created_by']);
 
                     $result = $wpdb->update($table_name, $arr_upd_item, array('id' => $item['id']));
                     if ($result !== FALSE) {
@@ -635,9 +663,14 @@ class ta_cls_admin{
                         <div id="post-body-content">
                             <?php /* And here we call our custom meta box */ ?>
                             <?php do_meta_boxes($arr_table['tbl_name'], 'normal', $item); ?>
-                            <?php if(!isset($_GET['view'])){?>
-                            <input type="submit" value="<?php _e('Save', 'custom_table_example')?>" id="submit" class="button-primary" name="submit">
-                            <?php }?>
+                            <?php if(isset($_GET['view'])){?>
+                                <a class="add-new-h2"
+                                        href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page='.$arr_table['tbl_name']) ?>"><?php _e('Back To List', 'custom_table_example')?></a>
+                            <?php }else{?>
+                                <input type="submit" value="<?php _e('Save', 'custom_table_example')?>" id="submit" class="button-primary" name="submit">
+                            <?php 
+                            }
+                            ?>
                         </div>
                     </div>
                 </div>
@@ -692,7 +725,14 @@ class ta_cls_admin{
             <td>
                 <?php 
                 if(in_array(strtolower($name), array("date_created", "date_modified"))){
-                    echo $value;
+                    echo $this->ta_format_date($value);
+                ?>
+                    <input id="<?php echo $name;?>" name="<?php echo $name;?>" type="hidden" value="<?php echo esc_attr($value)?>">
+                <?php
+                }
+                elseif(in_array(strtolower($name), array("created_by", "modified_by"))){
+                    $user = get_user_by( 'id', $value );
+                    echo $user->display_name;
                 ?>
                     <input id="<?php echo $name;?>" name="<?php echo $name;?>" type="hidden" value="<?php echo esc_attr($value)?>">
                 <?php
@@ -719,7 +759,17 @@ class ta_cls_admin{
                             <?php echo $value['name'];?>
                         </th>
                         <td>
-                            <?php echo $item[$key];?>
+                            <?php //echo $item[$key];?>
+                            <?php 
+                            if(in_array(strtolower($key), array("date_created", "date_modified"))){
+                                echo $this->ta_format_date($item[$key]);
+                            }
+                            elseif(in_array(strtolower($key), array("created_by", "modified_by"))){
+                                $user = get_user_by( 'id', $item[$key] );
+                                echo $user->display_name;                            
+                            }else{
+                                echo $item[$key];
+                            }?>
                         </td>
                     </tr>
             <?php
@@ -728,6 +778,9 @@ class ta_cls_admin{
             </tbody>
         </table>
     <?php
+    }
+    function ta_format_date($date, $outut_format = "m/d/Y H:i:s"){
+        return date($outut_format, strtotime($date));
     }
     public function add_custom_style(){
     ?>
